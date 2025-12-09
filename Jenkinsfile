@@ -153,18 +153,31 @@ stage('Smoke Tests') {
         }
     }
 }
-
-    stage('Build Images (for registry)') {
-      steps {
-        sh '''
-          docker build -f backend/Dockerfile -t ${REGISTRY}/${APP_NAME}-backend:${IMAGE_TAG} .
-          docker build -f frontend/Dockerfile -t ${REGISTRY}/${APP_NAME}-frontend:${IMAGE_TAG} .
-          for svc in patients vitals alerts scoring simulator auth tasks audit notifications; do
-            docker build -f services/$svc/Dockerfile -t ${REGISTRY}/${APP_NAME}-${svc}:${IMAGE_TAG} .
-          done
-        '''
-      }
+stage('Build Images (for registry)') {
+    steps {
+        script {
+            // Define your variables clearly
+            def imageTag = env.GIT_COMMIT // Ensure this matches the Push stage logic!
+            def org = "docker.io/narayanasrimanth" // <--- UPDATE THIS
+            
+            // Build Backend
+            sh "docker build -f backend/Dockerfile -t ${org}/sentinelcare-backend:${imageTag} ."
+            
+            // Build Frontend
+            sh "docker build -f frontend/Dockerfile -t ${org}/sentinelcare-frontend:${imageTag} ."
+            
+            // Build All Other Microservices
+            def services = [
+                'auth', 'patients', 'vitals', 'alerts', 
+                'scoring', 'tasks', 'audit', 'simulator', 'notifications'
+            ]
+            
+            services.each { service ->
+                sh "docker build -f services/${service}/Dockerfile -t ${org}/sentinelcare-${service}:${imageTag} ."
+            }
+        }
     }
+}
 
 stage('Image Scan') {
     steps {
@@ -173,8 +186,8 @@ stage('Image Scan') {
             
             // Define the list of images to scan
             // TIP: Use the same tag variable you used in the Build stage
-            def imageTag = "09dedf988bf8e0607422302f944b0bc298860b81" // ideally use env.GIT_COMMIT
-            def org = "docker.io/your-org"
+            def imageTag = env.GIT_COMMIT // ideally use env.GIT_COMMIT
+            def org = "docker.io/narayanasrimanth"
             
             def images = [
                 "${org}/sentinelcare-backend:${imageTag}",
