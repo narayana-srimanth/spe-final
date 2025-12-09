@@ -110,14 +110,15 @@ PY
       }
     }
 
-    stage('Build & Up (Compose)') {
+  stage('Build & Up (Compose)') {
       steps {
-        sh '''
-          docker compose build ${COMPOSE_SERVICES}
-          docker compose up -d ${COMPOSE_SERVICES}
-        '''
+          // This line kills any old containers occupying the ports
+          sh 'docker compose down -v || true' 
+          
+          sh 'docker compose build backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
+          sh 'docker compose up -d backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
       }
-    }
+  }
 
     stage('Smoke Tests') {
       steps {
