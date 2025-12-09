@@ -57,7 +57,7 @@ pipeline {
           test -f ${MODEL_PATH}
           sha256sum ${MODEL_PATH}
           . .venv/bin/activate
-          PYTHONPATH=backend python - <<'PY'
+          PYTHONPATH=backend python - <<PY
 from pathlib import Path
 from app.services.mock_model import MockRiskModel
 
