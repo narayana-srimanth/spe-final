@@ -2,7 +2,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from ..core.audit import send_audit_event
-from ..core.auth import get_current_role, get_current_subject, require_roles
+from ..core.auth import get_current_subject, require_roles
 from ..core.config import get_settings
 from ..models.domain import Task, TaskCreate, TaskUpdate
 

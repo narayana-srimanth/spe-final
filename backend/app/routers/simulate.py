@@ -1,12 +1,10 @@
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
-
-from ..core.auth import get_current_subject
-from ..core.config import get_settings
 from fastapi.encoders import jsonable_encoder
 
 from ..core.audit import send_audit_event
-from ..core.auth import get_current_role
+from ..core.auth import get_current_role, get_current_subject
+from ..core.config import get_settings
 from ..models.domain import Alert, RiskScoreResult, SimulationResult, VitalsPayload
 
 router = APIRouter(prefix="/simulate", tags=["simulate"])
