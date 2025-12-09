@@ -252,7 +252,6 @@ stage('Push Images') {
 }
 
     stage('Pull & Deploy to K8s') {
-      when { branch "main" }
       steps {
         sh '''
           # Pull images from registry to validate availability
