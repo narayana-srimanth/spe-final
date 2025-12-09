@@ -56,19 +56,21 @@ pipeline {
     }
 
     stage('SonarQube Analysis') {
-      steps {
-        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-          sh '''
-            sonar-scanner \
-              -Dsonar.projectKey=sentinelcare \
-              -Dsonar.sources=backend,frontend/src \
-              -Dsonar.tests=backend/tests \
-              -Dsonar.host.url=${SONAR_HOST_URL} \
-              -Dsonar.login=${SONAR_TOKEN} \
-              -Dsonar.python.version=3.11
-          '''
+        steps {
+            // This tells Jenkins to use the tool named 'sonar-scanner' we set up in Phase 3
+            script {
+                def scannerHome = tool 'sonar-scanner'
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=sentinelcare \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.token=$SONAR_TOKEN
+                    """
+                }
+            }
         }
-      }
     }
 
     stage('Secret Scan') {
