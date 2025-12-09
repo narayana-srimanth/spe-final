@@ -1,0 +1,7 @@
+- name: Create namespaces and secrets for SentinelCare
+  ansible.builtin.debug:
+    msg: "Create sentinelcare namespace, Docker registry secret, Vault auth, and config maps."
+
+- name: Apply Helm release
+  ansible.builtin.debug:
+    msg: "Run helm upgrade --install for sentinelcare chart with environment-specific values."

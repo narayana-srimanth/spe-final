@@ -1,0 +1,13 @@
+- name: Install Java runtime for Jenkins
+  ansible.builtin.package:
+    name: openjdk-11-jdk
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install Jenkins (placeholder)
+  ansible.builtin.debug:
+    msg: "Install Jenkins packages and configure webhook credentials here."
+
+- name: Configure Jenkins plugins and jobs
+  ansible.builtin.debug:
+    msg: "Use Jenkins Job DSL or JCasC to seed pipeline; point to repo Jenkinsfile."

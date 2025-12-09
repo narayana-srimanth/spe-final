@@ -1,0 +1,7 @@
+- name: Install Docker engine for ELK stack
+  ansible.builtin.debug:
+    msg: "Install Docker and docker-compose, then deploy ELK stack via compose/Helm."
+
+- name: Deploy ELK using container stack (placeholder)
+  ansible.builtin.debug:
+    msg: "Place docker-compose or Helm deployment for Elasticsearch, Logstash/Fluentbit, Kibana."

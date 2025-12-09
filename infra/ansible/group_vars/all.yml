@@ -1,0 +1,3 @@
+app_name: sentinelcare
+registry: docker.io/your-org
+dockerhub_credentials_id: dockerhub-creds

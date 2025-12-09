@@ -1,0 +1,29 @@
+- hosts: all
+  become: true
+  roles:
+    - common
+
+- hosts: jenkins
+  become: true
+  roles:
+    - jenkins
+
+- hosts: elk
+  become: true
+  roles:
+    - elk
+
+- hosts: vault
+  become: true
+  roles:
+    - vault
+
+- hosts: k8s_nodes
+  become: true
+  roles:
+    - k8s-prep
+
+- hosts: app_hosts
+  become: true
+  roles:
+    - app-bootstrap

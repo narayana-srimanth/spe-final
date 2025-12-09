@@ -1,0 +1,1 @@
+"""SentinelCare FastAPI application package."""

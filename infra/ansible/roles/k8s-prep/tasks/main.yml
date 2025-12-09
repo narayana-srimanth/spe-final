@@ -1,0 +1,7 @@
+- name: Install kubelet/kubeadm/kubectl prerequisites
+  ansible.builtin.debug:
+    msg: "Install container runtime, kubelet, kubeadm, kubectl; configure cgroup drivers."
+
+- name: Label nodes for workloads
+  ansible.builtin.debug:
+    msg: "Label nodes for ingress, monitoring, and workload pools."

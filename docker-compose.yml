@@ -1,0 +1,153 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      - MODEL_PATH=/app/models/mock_artifacts/sepsis_mock_model.json
+      - PATIENTS_SERVICE_URL=http://patients:8101
+      - VITALS_SERVICE_URL=http://vitals:8102
+      - ALERTS_SERVICE_URL=http://alerts:8103
+      - SCORING_SERVICE_URL=http://scoring:8104
+      - TASKS_SERVICE_URL=http://tasks:8105
+      - AUDIT_SERVICE_URL=http://audit:8106
+      - NOTIFY_SERVICE_URL=http://notifications:8107
+      - AUTH_ISSUER=sentinelcare-auth
+      - AUTH_AUDIENCE=sentinelcare-clients
+      - AUTH_SECRET=super-secret-demo-key
+    volumes:
+      - ./models:/app/models:ro
+    ports:
+      - "8001:8000"
+    depends_on:
+      - patients
+      - vitals
+      - alerts
+      - scoring
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE: http://localhost:8001
+    environment:
+      - VITE_API_BASE=http://backend:8000
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+  patients:
+    build:
+      context: .
+      dockerfile: services/patients/Dockerfile
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=sentinelcare
+    ports:
+      - "8101:8101"
+    depends_on:
+      - mongo
+  vitals:
+    build:
+      context: .
+      dockerfile: services/vitals/Dockerfile
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=sentinelcare
+    ports:
+      - "8102:8102"
+    depends_on:
+      - mongo
+  alerts:
+    build:
+      context: .
+      dockerfile: services/alerts/Dockerfile
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=sentinelcare
+    ports:
+      - "8103:8103"
+    depends_on:
+      - mongo
+  scoring:
+    build:
+      context: .
+      dockerfile: services/scoring/Dockerfile
+    ports:
+      - "8104:8104"
+  tasks:
+    build:
+      context: .
+      dockerfile: services/tasks/Dockerfile
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=sentinelcare
+    ports:
+      - "8105:8105"
+    depends_on:
+      - mongo
+  audit:
+    build:
+      context: .
+      dockerfile: services/audit/Dockerfile
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=sentinelcare
+    ports:
+      - "8106:8106"
+    depends_on:
+      - mongo
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    environment:
+      - AUTH_SECRET=super-secret-demo-key
+      - AUTH_ISSUER=sentinelcare-auth
+      - AUTH_AUDIENCE=sentinelcare-clients
+      - AUTH_TOKEN_EXP_MIN=120
+    ports:
+      - "8100:8100"
+  notifications:
+    build:
+      context: .
+      dockerfile: services/notifications/Dockerfile
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=sentinelcare
+    ports:
+      - "8107:8107"
+    depends_on:
+      - mongo
+  simulator:
+    build:
+      context: .
+      dockerfile: services/simulator/Dockerfile
+    environment:
+      - PATIENTS_SERVICE_URL=http://patients:8101
+      - VITALS_SERVICE_URL=http://vitals:8102
+      - ALERTS_SERVICE_URL=http://alerts:8103
+      - SCORING_SERVICE_URL=http://scoring:8104
+      - SIM_INTERVAL_SECONDS=30
+    depends_on:
+      - patients
+      - vitals
+      - alerts
+      - scoring
+  # Placeholders for future expansion:
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_PASSWORD: sentinelcare
+  #   ports:
+  #     - "5432:5432"
+  # kafka and zookeeper can be added here when wiring ingestion.
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

@@ -1,0 +1,7 @@
+- name: Install HashiCorp Vault (placeholder)
+  ansible.builtin.debug:
+    msg: "Install Vault, enable audit device, configure KV engine for secrets."
+
+- name: Seed Vault policies and roles
+  ansible.builtin.debug:
+    msg: "Create policies for Jenkins, services, and K8s CSI auth."

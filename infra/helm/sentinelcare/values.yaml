@@ -1,0 +1,44 @@
+image:
+  backend:
+    repository: docker.io/your-org/sentinelcare-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: docker.io/your-org/sentinelcare-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+service:
+  backend:
+    port: 8000
+  frontend:
+    port: 80
+
+mockModel:
+  path: /app/models/mock_artifacts/sepsis_mock_model.json
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: sentinelcare.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  backend: {}
+  frontend: {}
+
+autoscaling:
+  enabled: true
+  backend:
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+  frontend:
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 70

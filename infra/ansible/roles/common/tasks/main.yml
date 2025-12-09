@@ -1,0 +1,12 @@
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install baseline packages
+  ansible.builtin.package:
+    name:
+      - git
+      - curl
+      - python3-pip
+    state: present

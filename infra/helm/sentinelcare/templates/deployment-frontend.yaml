@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-frontend
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}"
+          imagePullPolicy: {{ .Values.image.frontend.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.frontend.port }}
+          env:
+            - name: VITE_API_BASE
+              value: "http://{{ include "sentinelcare.fullname" . }}-backend:{{ .Values.service.backend.port }}"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.frontend.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.frontend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources.frontend | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-frontend
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: frontend
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: frontend
+  ports:
+    - port: {{ .Values.service.frontend.port }}
+      targetPort: {{ .Values.service.frontend.port }}
+      protocol: TCP

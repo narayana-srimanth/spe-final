@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sentinelcare
+description: SentinelCare edge-to-cloud risk scoring stack
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
