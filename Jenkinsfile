@@ -115,17 +115,14 @@ stage('Build & Up (Compose)') {
         script {
             echo "--- STARTING PORT-BASED CLEANUP ---"
             
-            // REMOVED 8080. 
-            // Added 8000, 8001, 8002 (Backend/Frontend) + 27017 (Mongo) + 8100-8110 (Microservices)
-            def ports = [8000, 8001, 8002, 27017] + (8100..8110).toList()
+            // Added 8081 and 8082 to cover Frontend and any other services
+            def ports = [8000, 8001, 8002, 8080, 8081, 8082, 27017] + (8100..8110).toList()
             
             ports.each { port ->
-                // This checks for DOCKER containers using the port. 
-                // It will kill zombie app containers but ignore your native Jenkins.
                 sh "docker ps -q --filter publish=${port} | xargs -r docker rm -f"
             }
 
-            // Standard cleanup
+            sh 'docker ps -aq --filter name=serenealcare | xargs -r docker rm -f'
             sh 'docker compose down -v --remove-orphans || true'
             sh 'docker network prune -f || true'
 
