@@ -1,11 +1,12 @@
-fastapi==0.104.1
+fastapi==0.124.0
 uvicorn[standard]==0.24.0.post1
 pydantic==1.10.13
-python-multipart==0.0.6
+python-multipart==0.0.18
 httpx==0.25.2
 loguru==0.7.2
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
-gunicorn==21.2.0
+gunicorn==22.0.0
 motor==3.3.2
 pymongo==4.6.3
+types-python-jose==3.5.0.20250531

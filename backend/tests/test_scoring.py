@@ -20,8 +20,10 @@ def test_mock_model_golden_scores_high():
         "temperature_c": 39,
     }
     score, label = model.score(payload)
-    assert 0 <= score <= 1
-    assert label == "high"
+    if not (0 <= score <= 1):
+        raise AssertionError("Score must remain between 0 and 1 for high-vital set")
+    if label != "high":
+        raise AssertionError("High-risk payload should produce 'high' label")
 
 
 def test_mock_model_golden_scores_normal():
@@ -41,5 +43,7 @@ def test_mock_model_golden_scores_normal():
         "temperature_c": 36.8,
     }
     score, label = model.score(payload)
-    assert 0 <= score <= 1
-    assert label == "normal"
+    if not (0 <= score <= 1):
+        raise AssertionError("Score must remain between 0 and 1 for normal-vital set")
+    if label != "normal":
+        raise AssertionError("Normal payload should produce 'normal' label")

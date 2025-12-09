@@ -57,4 +57,6 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    # MyPy sees BaseSettings' generated __init__ as requiring every field;
+    # the defaults satisfy this at runtime, so silence the call-arg check.
+    return Settings()  # type: ignore[call-arg]
