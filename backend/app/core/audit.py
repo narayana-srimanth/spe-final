@@ -4,7 +4,12 @@ from loguru import logger
 from .config import get_settings
 
 
-async def send_audit_event(action: str, subject: str | None = None, actor_role: str | None = None, detail: str = ""):
+async def send_audit_event(
+    action: str,
+    subject: str | None = None,
+    actor_role: str | None = None,
+    detail: str = "",
+):
     settings = get_settings()
     if not settings.audit_service_url:
         return

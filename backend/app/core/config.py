@@ -36,8 +36,12 @@ class Settings(BaseSettings):
     )
     auth_issuer: str = Field("sentinelcare-auth", description="Auth issuer")
     auth_audience: str = Field("sentinelcare-clients", description="Auth audience")
-    auth_secret: str = Field("super-secret-demo-key", description="HS256 signing secret")
-    auth_service_url: str = Field("http://auth:8100", description="Auth service base URL")
+    auth_secret: str = Field(
+        "super-secret-demo-key", description="HS256 signing secret"
+    )
+    auth_service_url: str = Field(
+        "http://auth:8100", description="Auth service base URL"
+    )
 
     class Config:
         env_file = ".env"

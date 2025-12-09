@@ -4,7 +4,12 @@ from app.services.mock_model import MockRiskModel
 
 
 def test_mock_model_golden_scores_high():
-    artifact = Path(__file__).resolve().parents[2] / "models" / "mock_artifacts" / "sepsis_mock_model.json"
+    artifact = (
+        Path(__file__).resolve().parents[2]
+        / "models"
+        / "mock_artifacts"
+        / "sepsis_mock_model.json"
+    )
     model = MockRiskModel(artifact)
     payload = {
         "heart_rate": 130,
@@ -20,7 +25,12 @@ def test_mock_model_golden_scores_high():
 
 
 def test_mock_model_golden_scores_normal():
-    artifact = Path(__file__).resolve().parents[2] / "models" / "mock_artifacts" / "sepsis_mock_model.json"
+    artifact = (
+        Path(__file__).resolve().parents[2]
+        / "models"
+        / "mock_artifacts"
+        / "sepsis_mock_model.json"
+    )
     model = MockRiskModel(artifact)
     payload = {
         "heart_rate": 80,

@@ -20,7 +20,9 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 async def get_prefs(subject: str = Depends(get_current_subject)) -> NotificationPrefs:
     settings = get_settings()
     async with httpx.AsyncClient() as client:
-        resp = await client.get(f"{settings.notify_service_url}/notifications/prefs/{subject}")
+        resp = await client.get(
+            f"{settings.notify_service_url}/notifications/prefs/{subject}"
+        )
     if resp.status_code == 404:
         return NotificationPrefs()
     if resp.status_code >= 400:

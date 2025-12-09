@@ -16,7 +16,9 @@ async def list_alerts(subject: str = Depends(get_current_subject)) -> list[Alert
         patients_resp = await client.get(f"{settings.patients_service_url}/patients")
 
     if alerts_resp.status_code >= 400:
-        raise HTTPException(status_code=alerts_resp.status_code, detail=alerts_resp.text)
+        raise HTTPException(
+            status_code=alerts_resp.status_code, detail=alerts_resp.text
+        )
 
     patient_map: dict[str, str] = {}
     if patients_resp.status_code < 400:
@@ -36,7 +38,9 @@ async def acknowledge_alert(
 ) -> AlertAck:
     settings = get_settings()
     async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{settings.alerts_service_url}/alerts/ack", json=ack.dict())
+        resp = await client.post(
+            f"{settings.alerts_service_url}/alerts/ack", json=ack.dict()
+        )
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
     return AlertAck(**resp.json())

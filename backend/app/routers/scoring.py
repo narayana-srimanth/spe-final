@@ -14,7 +14,9 @@ async def score_vitals(
 ) -> RiskScoreResult:
     settings = get_settings()
     async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{settings.scoring_service_url}/score", json=vitals.dict())
+        resp = await client.post(
+            f"{settings.scoring_service_url}/score", json=vitals.dict()
+        )
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
     return RiskScoreResult(**resp.json())

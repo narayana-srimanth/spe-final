@@ -21,7 +21,9 @@ async def list_patients(
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
     patients = [Patient(**p) for p in resp.json()]
     if role == "doctor":
-        patients = [p for p in patients if (p.assigned_to == subject or p.assigned_to is None)]
+        patients = [
+            p for p in patients if (p.assigned_to == subject or p.assigned_to is None)
+        ]
     return patients
 
 
@@ -34,7 +36,8 @@ async def create_patient(
     settings = get_settings()
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            f"{settings.patients_service_url}/patients", json=payload.dict(by_alias=True)
+            f"{settings.patients_service_url}/patients",
+            json=payload.dict(by_alias=True),
         )
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)

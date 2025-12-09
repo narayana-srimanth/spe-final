@@ -65,7 +65,7 @@ async def simulate_vitals_and_score(
         if score_resp.status_code >= 400:
             raise HTTPException(
                 status_code=score_resp.status_code, detail=score_resp.text
-        )
+            )
         score = RiskScoreResult(**score_resp.json())
 
         alert_obj: Alert | None = None
