@@ -78,6 +78,11 @@ async def trigger(background_tasks: BackgroundTasks):
     return {"status": "queued"}
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
     import uvicorn
 

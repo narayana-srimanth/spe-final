@@ -103,3 +103,8 @@ async def generate_vitals(
     payload = VitalsPayload(patient_id=patient_id, device_id=device_id, **base)
     await vitals_col.insert_one(payload.dict())
     return payload
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

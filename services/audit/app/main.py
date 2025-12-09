@@ -62,3 +62,8 @@ async def create_event(payload: AuditCreate) -> AuditEvent:
     event = AuditEvent(**payload.dict())
     await audit_col.insert_one({**event.dict(), "_id": event.id})
     return event
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

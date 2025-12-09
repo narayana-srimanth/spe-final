@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
-          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          image: "{{ .Values.global.image.repository }}/{{ .Values.image.backend.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           env:
             - name: MODEL_PATH
               value: "{{ .Values.mockModel.path }}"

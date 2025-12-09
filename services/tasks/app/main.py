@@ -115,3 +115,8 @@ async def update_task(task_id: str, payload: TaskUpdate) -> Task:
         raise HTTPException(status_code=404, detail="Task not found")
     doc = await tasks_col.find_one({"id": task_id})
     return _doc_to_task(doc)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

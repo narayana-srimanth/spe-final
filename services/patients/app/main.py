@@ -124,3 +124,8 @@ async def update_monitoring(patient_id: str, payload: PatientMonitorUpdate) -> P
         raise HTTPException(status_code=404, detail="Patient not found")
     doc = await patients_col.find_one({"id": patient_id})
     return _doc_to_patient(doc)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

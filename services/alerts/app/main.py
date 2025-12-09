@@ -82,3 +82,8 @@ async def acknowledge_alert(ack: AlertAck) -> AlertAck:
     if not doc:
         raise HTTPException(status_code=404, detail="Alert not found")
     return ack
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

@@ -19,8 +19,20 @@ spec:
     spec:
       containers:
         - name: vitals
-          image: "{{ .Values.image.vitals.repository }}:{{ .Values.image.vitals.tag }}"
-          imagePullPolicy: {{ .Values.image.vitals.pullPolicy }}
+          image: "{{ .Values.global.image.repository }}/{{ .Values.image.vitals.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.vitals.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.vitals.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 20
           env:
             - name: MONGO_URL
               value: "mongodb://{{ .Release.Name }}-mongodb:27017"

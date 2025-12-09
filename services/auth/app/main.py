@@ -129,3 +129,8 @@ async def verify_token(token: str) -> VerifyResponse:
     return VerifyResponse(
         subject=payload.get("sub"), role=payload.get("role"), expires_at=datetime.fromtimestamp(payload["exp"])
     )
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

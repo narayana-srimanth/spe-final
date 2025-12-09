@@ -19,8 +19,20 @@ spec:
     spec:
       containers:
         - name: scoring
-          image: "{{ .Values.image.scoring.repository }}:{{ .Values.image.scoring.tag }}"
-          imagePullPolicy: {{ .Values.image.scoring.pullPolicy }}
+          image: "{{ .Values.global.image.repository }}/{{ .Values.image.scoring.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.scoring.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.scoring.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 20
           ports:
             - containerPort: {{ .Values.service.scoring.port }}
           resources:

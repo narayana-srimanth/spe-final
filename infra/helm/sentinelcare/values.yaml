@@ -1,51 +1,33 @@
-image:
-  backend:
-    repository: docker.io/narayanasrimanth/sentinelcare-backend
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  frontend:
-    repository: docker.io/narayanasrimanth/sentinelcare-frontend
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  patients:
-    repository: docker.io/narayanasrimanth/sentinelcare-patients
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  vitals:
-    repository: docker.io/narayanasrimanth/sentinelcare-vitals
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  alerts:
-    repository: docker.io/narayanasrimanth/sentinelcare-alerts
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  scoring:
-    repository: docker.io/narayanasrimanth/sentinelcare-scoring
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  tasks:
-    repository: docker.io/narayanasrimanth/sentinelcare-tasks
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  audit:
-    repository: docker.io/narayanasrimanth/sentinelcare-audit
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  notifications:
-    repository: docker.io/narayanasrimanth/sentinelcare-notifications
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  auth:
-    repository: docker.io/narayanasrimanth/sentinelcare-auth
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  simulator:
-    repository: docker.io/narayanasrimanth/sentinelcare-simulator
+global:
+  environment: dev
+  image:
+    repository: docker.io/narayanasrimanth
     tag: "latest"
     pullPolicy: IfNotPresent
 
-global:
-  environment: dev
+image:
+  backend:
+    repository: sentinelcare-backend
+  frontend:
+    repository: sentinelcare-frontend
+  patients:
+    repository: sentinelcare-patients
+  vitals:
+    repository: sentinelcare-vitals
+  alerts:
+    repository: sentinelcare-alerts
+  scoring:
+    repository: sentinelcare-scoring
+  tasks:
+    repository: sentinelcare-tasks
+  audit:
+    repository: sentinelcare-audit
+  notifications:
+    repository: sentinelcare-notifications
+  auth:
+    repository: sentinelcare-auth
+  simulator:
+    repository: sentinelcare-simulator
 
 service:
   backend:
@@ -69,7 +51,7 @@ service:
   auth:
     port: 8100
   simulator:
-    port: 8000 # Simulator doesn't expose a service port usually but good to have
+    port: 8110 # Simulator runs on 8110 by default
 
 mockModel:
   path: /app/models/mock_artifacts/sepsis_mock_model.json

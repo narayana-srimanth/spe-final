@@ -71,3 +71,8 @@ async def upsert_prefs(payload: NotificationPrefsUpdate, subject: str) -> Notifi
     new = NotificationPrefs(subject=subject, **payload.dict())
     await prefs_col.insert_one({**new.dict(), "_id": new.id})
     return new
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

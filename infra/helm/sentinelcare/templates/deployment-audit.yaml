@@ -19,8 +19,20 @@ spec:
     spec:
       containers:
         - name: audit
-          image: "{{ .Values.image.audit.repository }}:{{ .Values.image.audit.tag }}"
-          imagePullPolicy: {{ .Values.image.audit.pullPolicy }}
+          image: "{{ .Values.global.image.repository }}/{{ .Values.image.audit.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.audit.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.audit.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 20
           env:
             - name: MONGO_URL
               value: "mongodb://{{ .Release.Name }}-mongodb:27017"
