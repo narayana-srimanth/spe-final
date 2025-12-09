@@ -110,15 +110,28 @@ PY
       }
     }
 
-  stage('Build & Up (Compose)') {
-      steps {
-          // This line kills any old containers occupying the ports
-          sh 'docker compose down -v || true' 
-          
-          sh 'docker compose build backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
-          sh 'docker compose up -d backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
-      }
-  }
+    stage('Build & Up (Compose)') {
+        steps {
+            script {
+                echo "--- STARTING AGGRESSIVE CLEANUP ---"
+                
+                // 1. Force remove ANY container matching the project name (This kills the zombies)
+                sh 'docker rm -f $(docker ps -aq --filter name=serenealcare) || true'
+    
+                // 2. Standard Compose Down (Clean up networks)
+                sh 'docker compose down -v || true'
+                
+                // 3. Optional: Prune network leftovers
+                sh 'docker network prune -f || true'
+    
+                echo "--- CLEANUP COMPLETE, STARTING BUILD ---"
+    
+                // 4. Build and Start
+                sh 'docker compose build backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
+                sh 'docker compose up -d backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
+            }
+        }
+    }
 
     stage('Smoke Tests') {
       steps {
