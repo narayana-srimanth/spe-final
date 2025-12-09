@@ -115,24 +115,22 @@ stage('Build & Up (Compose)') {
         script {
             echo "--- STARTING PORT-BASED CLEANUP ---"
             
-            // 1. Force kill containers occupying your specific microservice ports
-            // We loop from 8100 to 8110 to cover Auth, Alerts, Scoring, Vitals, etc.
-            def ports = [8100, 8101, 8102, 8103, 8104, 8105, 8106, 8107, 8108, 8109, 8110, 8080, 27017]
+            // REMOVED 8080. 
+            // Added 8000, 8001, 8002 (Backend/Frontend) + 27017 (Mongo) + 8100-8110 (Microservices)
+            def ports = [8000, 8001, 8002, 27017] + (8100..8110).toList()
             
             ports.each { port ->
-                // Check if any container is using this port and kill it
+                // This checks for DOCKER containers using the port. 
+                // It will kill zombie app containers but ignore your native Jenkins.
                 sh "docker ps -q --filter publish=${port} | xargs -r docker rm -f"
             }
 
-            // 2. Standard Compose Down to clean up networks
+            // Standard cleanup
             sh 'docker compose down -v --remove-orphans || true'
-            
-            // 3. Prune dangling networks
             sh 'docker network prune -f || true'
 
             echo "--- CLEANUP COMPLETE, STARTING BUILD ---"
 
-            // 4. Build and Start
             sh 'docker compose build backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
             sh 'docker compose up -d backend frontend patients vitals alerts scoring auth tasks audit simulator notifications mongo'
         }
