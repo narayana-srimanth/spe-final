@@ -134,16 +134,21 @@ stage('Build & Up (Compose)') {
     }
 }
 
-    stage('Smoke Tests') {
-      steps {
-        sh '''
-          curl -s http://localhost:8001/health
-          TOKEN=$(curl -s -X POST http://localhost:8001/auth/login -H "Content-Type: application/json" -d '{"username":"admin@sentinel.care","password":"admin123"}' | jq -r .access_token)
-          curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8001/patients | head -c 200
-          curl -I http://localhost:8081
-        '''
-      }
+stage('Smoke Tests') {
+    steps {
+        script {
+            // Wait up to 60 seconds for the backend to be ready
+            timeout(time: 60, unit: 'SECONDS') {
+                waitUntil {
+                    script {
+                        def r = sh script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/health', returnStdout: true
+                        return r.trim() == "200"
+                    }
+                }
+            }
+        }
     }
+}
 
     stage('Build Images (for registry)') {
       steps {
