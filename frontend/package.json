@@ -7,7 +7,8 @@
     "dev": "pnpm vite",
     "build": "pnpm vite build",
     "preview": "pnpm vite preview",
-    "lint": "pnpm eslint ."
+    "lint": "pnpm eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
