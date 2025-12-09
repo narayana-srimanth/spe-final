@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-scoring
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: scoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: scoring
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: scoring
+    spec:
+      containers:
+        - name: scoring
+          image: "{{ .Values.image.scoring.repository }}:{{ .Values.image.scoring.tag }}"
+          imagePullPolicy: {{ .Values.image.scoring.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.scoring.port }}
+          resources:
+            {{- toYaml .Values.resources.scoring | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-scoring
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: scoring
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: scoring
+  ports:
+    - port: {{ .Values.service.scoring.port }}
+      targetPort: {{ .Values.service.scoring.port }}
+      protocol: TCP

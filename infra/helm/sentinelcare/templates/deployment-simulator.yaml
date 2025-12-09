@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-simulator
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: simulator
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: simulator
+    spec:
+      containers:
+        - name: simulator
+          image: "{{ .Values.image.simulator.repository }}:{{ .Values.image.simulator.tag }}"
+          imagePullPolicy: {{ .Values.image.simulator.pullPolicy }}
+          env:
+            - name: PATIENTS_SERVICE_URL
+              value: "http://{{ include "sentinelcare.fullname" . }}-patients:{{ .Values.service.patients.port }}"
+            - name: VITALS_SERVICE_URL
+              value: "http://{{ include "sentinelcare.fullname" . }}-vitals:{{ .Values.service.vitals.port }}"
+            - name: ALERTS_SERVICE_URL
+              value: "http://{{ include "sentinelcare.fullname" . }}-alerts:{{ .Values.service.alerts.port }}"
+            - name: SCORING_SERVICE_URL
+              value: "http://{{ include "sentinelcare.fullname" . }}-scoring:{{ .Values.service.scoring.port }}"
+            - name: SIM_INTERVAL_SECONDS
+              value: "30"
+          resources:
+            {{- toYaml .Values.resources.simulator | nindent 12 }}

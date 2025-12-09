@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-tasks
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: tasks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: tasks
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: tasks
+    spec:
+      containers:
+        - name: tasks
+          image: "{{ .Values.image.tasks.repository }}:{{ .Values.image.tasks.tag }}"
+          imagePullPolicy: {{ .Values.image.tasks.pullPolicy }}
+          env:
+            - name: MONGO_URL
+              value: "mongodb://{{ .Release.Name }}-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: {{ .Values.service.tasks.port }}
+          resources:
+            {{- toYaml .Values.resources.tasks | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-tasks
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: tasks
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: tasks
+  ports:
+    - port: {{ .Values.service.tasks.port }}
+      targetPort: {{ .Values.service.tasks.port }}
+      protocol: TCP

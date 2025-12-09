@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-notifications
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: notifications
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: notifications
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: notifications
+    spec:
+      containers:
+        - name: notifications
+          image: "{{ .Values.image.notifications.repository }}:{{ .Values.image.notifications.tag }}"
+          imagePullPolicy: {{ .Values.image.notifications.pullPolicy }}
+          env:
+            - name: MONGO_URL
+              value: "mongodb://{{ .Release.Name }}-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: {{ .Values.service.notifications.port }}
+          resources:
+            {{- toYaml .Values.resources.notifications | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-notifications
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: notifications
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: notifications
+  ports:
+    - port: {{ .Values.service.notifications.port }}
+      targetPort: {{ .Values.service.notifications.port }}
+      protocol: TCP

@@ -1,18 +1,75 @@
 image:
   backend:
-    repository: docker.io/your-org/sentinelcare-backend
+    repository: docker.io/narayanasrimanth/sentinelcare-backend
     tag: "latest"
     pullPolicy: IfNotPresent
   frontend:
-    repository: docker.io/your-org/sentinelcare-frontend
+    repository: docker.io/narayanasrimanth/sentinelcare-frontend
     tag: "latest"
     pullPolicy: IfNotPresent
+  patients:
+    repository: docker.io/narayanasrimanth/sentinelcare-patients
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  vitals:
+    repository: docker.io/narayanasrimanth/sentinelcare-vitals
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  alerts:
+    repository: docker.io/narayanasrimanth/sentinelcare-alerts
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  scoring:
+    repository: docker.io/narayanasrimanth/sentinelcare-scoring
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  tasks:
+    repository: docker.io/narayanasrimanth/sentinelcare-tasks
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  audit:
+    repository: docker.io/narayanasrimanth/sentinelcare-audit
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  notifications:
+    repository: docker.io/narayanasrimanth/sentinelcare-notifications
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  auth:
+    repository: docker.io/narayanasrimanth/sentinelcare-auth
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  simulator:
+    repository: docker.io/narayanasrimanth/sentinelcare-simulator
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+global:
+  environment: dev
 
 service:
   backend:
     port: 8000
   frontend:
     port: 80
+  patients:
+    port: 8101
+  vitals:
+    port: 8102
+  alerts:
+    port: 8103
+  scoring:
+    port: 8104
+  tasks:
+    port: 8105
+  audit:
+    port: 8106
+  notifications:
+    port: 8107
+  auth:
+    port: 8100
+  simulator:
+    port: 8000 # Simulator doesn't expose a service port usually but good to have
 
 mockModel:
   path: /app/models/mock_artifacts/sepsis_mock_model.json
@@ -31,9 +88,18 @@ ingress:
 resources:
   backend: {}
   frontend: {}
+  patients: {}
+  vitals: {}
+  alerts: {}
+  scoring: {}
+  tasks: {}
+  audit: {}
+  notifications: {}
+  auth: {}
+  simulator: {}
 
 autoscaling:
-  enabled: true
+  enabled: false # Disabled for now to simplify debugging
   backend:
     minReplicas: 1
     maxReplicas: 3
@@ -42,3 +108,12 @@ autoscaling:
     minReplicas: 1
     maxReplicas: 2
     targetCPUUtilizationPercentage: 70
+
+mongodb:
+  auth:
+    enabled: false
+  persistence:
+    enabled: false # For dev/demo simplicity
+  service:
+    ports:
+      mongodb: 27017

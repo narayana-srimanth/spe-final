@@ -1,0 +1,784 @@
+---
+# Source: sentinelcare/charts/mongodb/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sentinelcare-mongodb
+  namespace: "default"
+  labels:
+    app.kubernetes.io/instance: sentinelcare
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mongodb
+    helm.sh/chart: mongodb-13.18.0
+secrets:
+  - name: sentinelcare-mongodb
+automountServiceAccountToken: true
+---
+# Source: sentinelcare/charts/mongodb/templates/common-scripts-cm.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sentinelcare-mongodb-common-scripts
+  namespace: "default"
+  labels:
+    app.kubernetes.io/instance: sentinelcare
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mongodb
+    helm.sh/chart: mongodb-13.18.0
+    app.kubernetes.io/component: mongodb
+data:
+  startup-probe.sh: |
+    #!/bin/bash
+    mongosh  $TLS_OPTIONS --port $MONGODB_PORT_NUMBER --eval 'db.hello().isWritablePrimary || db.hello().secondary' | grep 'true'
+  readiness-probe.sh: |
+    #!/bin/bash
+    # Run the proper check depending on the version
+    [[ $(mongod -version | grep "db version") =~ ([0-9]+\.[0-9]+\.[0-9]+) ]] && VERSION=${BASH_REMATCH[1]}
+    . /opt/bitnami/scripts/libversion.sh
+    VERSION_MAJOR="$(get_sematic_version "$VERSION" 1)"
+    VERSION_MINOR="$(get_sematic_version "$VERSION" 2)"
+    VERSION_PATCH="$(get_sematic_version "$VERSION" 3)"
+    readiness_test='db.isMaster().ismaster || db.isMaster().secondary'
+    if [[ ( "$VERSION_MAJOR" -ge 5 ) || ( "$VERSION_MAJOR" -ge 4 && "$VERSION_MINOR" -ge 4 && "$VERSION_PATCH" -ge 2 ) ]]; then
+        readiness_test='db.hello().isWritablePrimary || db.hello().secondary'
+    fi
+    mongosh  $TLS_OPTIONS --port $MONGODB_PORT_NUMBER --eval "${readiness_test}" | grep 'true'
+  ping-mongodb.sh: |
+    #!/bin/bash
+    mongosh  $TLS_OPTIONS --port $MONGODB_PORT_NUMBER --eval "db.adminCommand('ping')"
+---
+# Source: sentinelcare/charts/mongodb/templates/standalone/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-mongodb
+  namespace: "default"
+  labels:
+    app.kubernetes.io/instance: sentinelcare
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mongodb
+    helm.sh/chart: mongodb-13.18.0
+    app.kubernetes.io/component: mongodb
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: "mongodb"
+      port: 27017
+      targetPort: mongodb
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: sentinelcare
+    app.kubernetes.io/name: mongodb
+    app.kubernetes.io/component: mongodb
+---
+# Source: sentinelcare/templates/deployment-alerts.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-alerts
+  labels:
+    app: sentinelcare
+    component: alerts
+spec:
+  selector:
+    app: sentinelcare
+    component: alerts
+  ports:
+    - port: 8103
+      targetPort: 8103
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-audit.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-audit
+  labels:
+    app: sentinelcare
+    component: audit
+spec:
+  selector:
+    app: sentinelcare
+    component: audit
+  ports:
+    - port: 8106
+      targetPort: 8106
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-auth.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-auth
+  labels:
+    app: sentinelcare
+    component: auth
+spec:
+  selector:
+    app: sentinelcare
+    component: auth
+  ports:
+    - port: 8100
+      targetPort: 8100
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-backend.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-backend
+  labels:
+    app: sentinelcare
+    component: backend
+spec:
+  selector:
+    app: sentinelcare
+    component: backend
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-frontend.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-frontend
+  labels:
+    app: sentinelcare
+    component: frontend
+spec:
+  selector:
+    app: sentinelcare
+    component: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-notifications.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-notifications
+  labels:
+    app: sentinelcare
+    component: notifications
+spec:
+  selector:
+    app: sentinelcare
+    component: notifications
+  ports:
+    - port: 8107
+      targetPort: 8107
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-patients.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-patients
+  labels:
+    app: sentinelcare
+    component: patients
+spec:
+  selector:
+    app: sentinelcare
+    component: patients
+  ports:
+    - port: 8101
+      targetPort: 8101
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-scoring.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-scoring
+  labels:
+    app: sentinelcare
+    component: scoring
+spec:
+  selector:
+    app: sentinelcare
+    component: scoring
+  ports:
+    - port: 8104
+      targetPort: 8104
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-tasks.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-tasks
+  labels:
+    app: sentinelcare
+    component: tasks
+spec:
+  selector:
+    app: sentinelcare
+    component: tasks
+  ports:
+    - port: 8105
+      targetPort: 8105
+      protocol: TCP
+---
+# Source: sentinelcare/templates/deployment-vitals.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelcare-vitals
+  labels:
+    app: sentinelcare
+    component: vitals
+spec:
+  selector:
+    app: sentinelcare
+    component: vitals
+  ports:
+    - port: 8102
+      targetPort: 8102
+      protocol: TCP
+---
+# Source: sentinelcare/charts/mongodb/templates/standalone/dep-sts.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-mongodb
+  namespace: "default"
+  labels:
+    app.kubernetes.io/instance: sentinelcare
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mongodb
+    helm.sh/chart: mongodb-13.18.0
+    app.kubernetes.io/component: mongodb
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: sentinelcare
+      app.kubernetes.io/name: mongodb
+      app.kubernetes.io/component: mongodb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: sentinelcare
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mongodb
+        helm.sh/chart: mongodb-13.18.0
+        app.kubernetes.io/component: mongodb
+    spec:
+      
+      serviceAccountName: sentinelcare-mongodb
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: sentinelcare
+                    app.kubernetes.io/name: mongodb
+                    app.kubernetes.io/component: mongodb
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        sysctls: []
+      
+      containers:
+        - name: mongodb
+          image: docker.io/bitnami/mongodb:6.0.9-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            runAsGroup: 0
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "yes"
+            - name: MONGODB_SYSTEM_LOG_VERBOSITY
+              value: "0"
+            - name: MONGODB_DISABLE_SYSTEM_LOG
+              value: "no"
+            - name: MONGODB_DISABLE_JAVASCRIPT
+              value: "no"
+            - name: MONGODB_ENABLE_JOURNAL
+              value: "yes"
+            - name: MONGODB_PORT_NUMBER
+              value: "27017"
+            - name: MONGODB_ENABLE_IPV6
+              value: "no"
+            - name: MONGODB_ENABLE_DIRECTORY_PER_DB
+              value: "no"
+          ports:
+            - name: mongodb
+              containerPort: 27017
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 10
+            exec:
+              command:
+                - /bitnami/scripts/ping-mongodb.sh
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bitnami/scripts/readiness-probe.sh
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: datadir
+              mountPath: /bitnami/mongodb
+              subPath: 
+            - name: common-scripts
+              mountPath: /bitnami/scripts
+      volumes:
+        - name: common-scripts
+          configMap:
+            name: sentinelcare-mongodb-common-scripts
+            defaultMode: 0550
+        - name: datadir
+          emptyDir: {}
+---
+# Source: sentinelcare/templates/deployment-alerts.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-alerts
+  labels:
+    app: sentinelcare
+    component: alerts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: alerts
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: alerts
+    spec:
+      containers:
+        - name: alerts
+          image: "docker.io/narayanasrimanth/sentinelcare-alerts:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              value: "mongodb://sentinelcare-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: 8103
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-audit.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-audit
+  labels:
+    app: sentinelcare
+    component: audit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: audit
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: audit
+    spec:
+      containers:
+        - name: audit
+          image: "docker.io/narayanasrimanth/sentinelcare-audit:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              value: "mongodb://sentinelcare-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: 8106
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-auth.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-auth
+  labels:
+    app: sentinelcare
+    component: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: auth
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: auth
+    spec:
+      containers:
+        - name: auth
+          image: "docker.io/narayanasrimanth/sentinelcare-auth:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: AUTH_SECRET
+              value: "super-secret-demo-key"
+            - name: AUTH_ISSUER
+              value: "sentinelcare-auth"
+            - name: AUTH_AUDIENCE
+              value: "sentinelcare-clients"
+            - name: AUTH_TOKEN_EXP_MIN
+              value: "120"
+          ports:
+            - containerPort: 8100
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-backend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-backend
+  labels:
+    app: sentinelcare
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: backend
+    spec:
+      containers:
+        - name: backend
+          image: "docker.io/narayanasrimanth/sentinelcare-backend:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MODEL_PATH
+              value: "/app/models/mock_artifacts/sepsis_mock_model.json"
+            - name: ENVIRONMENT
+              value: "dev"
+            - name: PATIENTS_SERVICE_URL
+              value: "http://sentinelcare-patients:8101"
+            - name: VITALS_SERVICE_URL
+              value: "http://sentinelcare-vitals:8102"
+            - name: ALERTS_SERVICE_URL
+              value: "http://sentinelcare-alerts:8103"
+            - name: SCORING_SERVICE_URL
+              value: "http://sentinelcare-scoring:8104"
+            - name: TASKS_SERVICE_URL
+              value: "http://sentinelcare-tasks:8105"
+            - name: AUDIT_SERVICE_URL
+              value: "http://sentinelcare-audit:8106"
+            - name: NOTIFY_SERVICE_URL
+              value: "http://sentinelcare-notifications:8107"
+            - name: AUTH_ISSUER
+              value: "sentinelcare-auth"
+            - name: AUTH_AUDIENCE
+              value: "sentinelcare-clients"
+            - name: AUTH_SECRET
+              value: "super-secret-demo-key"
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-frontend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-frontend
+  labels:
+    app: sentinelcare
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "docker.io/narayanasrimanth/sentinelcare-frontend:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_API_BASE
+              value: "http://sentinelcare-backend:8000"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-notifications.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-notifications
+  labels:
+    app: sentinelcare
+    component: notifications
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: notifications
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: notifications
+    spec:
+      containers:
+        - name: notifications
+          image: "docker.io/narayanasrimanth/sentinelcare-notifications:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              value: "mongodb://sentinelcare-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: 8107
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-patients.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-patients
+  labels:
+    app: sentinelcare
+    component: patients
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: patients
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: patients
+    spec:
+      containers:
+        - name: patients
+          image: "docker.io/narayanasrimanth/sentinelcare-patients:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              value: "mongodb://sentinelcare-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: 8101
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-scoring.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-scoring
+  labels:
+    app: sentinelcare
+    component: scoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: scoring
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: scoring
+    spec:
+      containers:
+        - name: scoring
+          image: "docker.io/narayanasrimanth/sentinelcare-scoring:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8104
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-simulator.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-simulator
+  labels:
+    app: sentinelcare
+    component: simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: simulator
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: simulator
+    spec:
+      containers:
+        - name: simulator
+          image: "docker.io/narayanasrimanth/sentinelcare-simulator:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PATIENTS_SERVICE_URL
+              value: "http://sentinelcare-patients:8101"
+            - name: VITALS_SERVICE_URL
+              value: "http://sentinelcare-vitals:8102"
+            - name: ALERTS_SERVICE_URL
+              value: "http://sentinelcare-alerts:8103"
+            - name: SCORING_SERVICE_URL
+              value: "http://sentinelcare-scoring:8104"
+            - name: SIM_INTERVAL_SECONDS
+              value: "30"
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-tasks.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-tasks
+  labels:
+    app: sentinelcare
+    component: tasks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: tasks
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: tasks
+    spec:
+      containers:
+        - name: tasks
+          image: "docker.io/narayanasrimanth/sentinelcare-tasks:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              value: "mongodb://sentinelcare-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: 8105
+          resources:
+            {}
+---
+# Source: sentinelcare/templates/deployment-vitals.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelcare-vitals
+  labels:
+    app: sentinelcare
+    component: vitals
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinelcare
+      component: vitals
+  template:
+    metadata:
+      labels:
+        app: sentinelcare
+        component: vitals
+    spec:
+      containers:
+        - name: vitals
+          image: "docker.io/narayanasrimanth/sentinelcare-vitals:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              value: "mongodb://sentinelcare-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: 8102
+          resources:
+            {}

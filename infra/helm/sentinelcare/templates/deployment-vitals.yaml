@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-vitals
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: vitals
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: vitals
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: vitals
+    spec:
+      containers:
+        - name: vitals
+          image: "{{ .Values.image.vitals.repository }}:{{ .Values.image.vitals.tag }}"
+          imagePullPolicy: {{ .Values.image.vitals.pullPolicy }}
+          env:
+            - name: MONGO_URL
+              value: "mongodb://{{ .Release.Name }}-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: {{ .Values.service.vitals.port }}
+          resources:
+            {{- toYaml .Values.resources.vitals | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-vitals
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: vitals
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: vitals
+  ports:
+    - port: {{ .Values.service.vitals.port }}
+      targetPort: {{ .Values.service.vitals.port }}
+      protocol: TCP

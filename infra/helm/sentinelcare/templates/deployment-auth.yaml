@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-auth
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: auth
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: auth
+    spec:
+      containers:
+        - name: auth
+          image: "{{ .Values.image.auth.repository }}:{{ .Values.image.auth.tag }}"
+          imagePullPolicy: {{ .Values.image.auth.pullPolicy }}
+          env:
+            - name: AUTH_SECRET
+              value: "super-secret-demo-key"
+            - name: AUTH_ISSUER
+              value: "sentinelcare-auth"
+            - name: AUTH_AUDIENCE
+              value: "sentinelcare-clients"
+            - name: AUTH_TOKEN_EXP_MIN
+              value: "120"
+          ports:
+            - containerPort: {{ .Values.service.auth.port }}
+          resources:
+            {{- toYaml .Values.resources.auth | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-auth
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: auth
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: auth
+  ports:
+    - port: {{ .Values.service.auth.port }}
+      targetPort: {{ .Values.service.auth.port }}
+      protocol: TCP

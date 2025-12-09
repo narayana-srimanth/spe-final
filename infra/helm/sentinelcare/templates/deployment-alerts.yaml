@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-alerts
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: alerts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: alerts
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: alerts
+    spec:
+      containers:
+        - name: alerts
+          image: "{{ .Values.image.alerts.repository }}:{{ .Values.image.alerts.tag }}"
+          imagePullPolicy: {{ .Values.image.alerts.pullPolicy }}
+          env:
+            - name: MONGO_URL
+              value: "mongodb://{{ .Release.Name }}-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: {{ .Values.service.alerts.port }}
+          resources:
+            {{- toYaml .Values.resources.alerts | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-alerts
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: alerts
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: alerts
+  ports:
+    - port: {{ .Values.service.alerts.port }}
+      targetPort: {{ .Values.service.alerts.port }}
+      protocol: TCP

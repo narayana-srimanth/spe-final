@@ -4,3 +4,9 @@ description: SentinelCare edge-to-cloud risk scoring stack
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
+
+dependencies:
+  - name: mongodb
+    version: 13.18.0
+    repository: https://charts.bitnami.com/bitnami
+

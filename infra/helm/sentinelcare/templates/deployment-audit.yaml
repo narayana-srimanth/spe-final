@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-audit
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: audit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sentinelcare.name" . }}
+      component: audit
+  template:
+    metadata:
+      labels:
+        app: {{ include "sentinelcare.name" . }}
+        component: audit
+    spec:
+      containers:
+        - name: audit
+          image: "{{ .Values.image.audit.repository }}:{{ .Values.image.audit.tag }}"
+          imagePullPolicy: {{ .Values.image.audit.pullPolicy }}
+          env:
+            - name: MONGO_URL
+              value: "mongodb://{{ .Release.Name }}-mongodb:27017"
+            - name: MONGO_DB
+              value: "sentinelcare"
+          ports:
+            - containerPort: {{ .Values.service.audit.port }}
+          resources:
+            {{- toYaml .Values.resources.audit | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinelcare.fullname" . }}-audit
+  labels:
+    app: {{ include "sentinelcare.name" . }}
+    component: audit
+spec:
+  selector:
+    app: {{ include "sentinelcare.name" . }}
+    component: audit
+  ports:
+    - port: {{ .Values.service.audit.port }}
+      targetPort: {{ .Values.service.audit.port }}
+      protocol: TCP
