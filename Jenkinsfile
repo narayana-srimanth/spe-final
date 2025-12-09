@@ -137,12 +137,16 @@ stage('Build & Up (Compose)') {
 stage('Smoke Tests') {
     steps {
         script {
-            // Wait up to 60 seconds for the backend to be ready
+            // Wait up to 60 seconds for the backend to start
             timeout(time: 60, unit: 'SECONDS') {
                 waitUntil {
                     script {
-                        def r = sh script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/health', returnStdout: true
-                        return r.trim() == "200"
+                        // Added '|| echo "000"' to catch connection failures
+                        def r = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/health || echo "000"', returnStdout: true).trim()
+                        
+                        echo "Backend Status: ${r}" // Print status for debugging
+                        
+                        return r == "200"
                     }
                 }
             }
