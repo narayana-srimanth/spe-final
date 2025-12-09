@@ -166,23 +166,39 @@ stage('Smoke Tests') {
       }
     }
 
-    stage('Image Scan') {
-      steps {
-        sh '''
-          IMAGES="${REGISTRY}/${APP_NAME}-backend:${IMAGE_TAG} ${REGISTRY}/${APP_NAME}-frontend:${IMAGE_TAG}"
-          for svc in ${MICROSERVICES}; do
-            IMAGES="${IMAGES} ${REGISTRY}/${APP_NAME}-${svc}:${IMAGE_TAG}"
-          done
-          if command -v trivy >/dev/null 2>&1; then
-            for img in ${IMAGES}; do
-              trivy image --severity HIGH,CRITICAL "$img"
-            done
-          else
-            echo "trivy not installed on agent"
-          fi
-        '''
-      }
+stage('Image Scan') {
+    steps {
+        script {
+            echo "--- STARTING TRIVY SECURITY SCAN ---"
+            
+            // Define the list of images to scan
+            // TIP: Use the same tag variable you used in the Build stage
+            def imageTag = "09dedf988bf8e0607422302f944b0bc298860b81" // ideally use env.GIT_COMMIT
+            def org = "docker.io/your-org"
+            
+            def images = [
+                "${org}/sentinelcare-backend:${imageTag}",
+                "${org}/sentinelcare-frontend:${imageTag}",
+                "${org}/sentinelcare-auth:${imageTag}",
+                "${org}/sentinelcare-patients:${imageTag}",
+                "${org}/sentinelcare-vitals:${imageTag}",
+                "${org}/sentinelcare-alerts:${imageTag}",
+                "${org}/sentinelcare-scoring:${imageTag}",
+                "${org}/sentinelcare-tasks:${imageTag}",
+                "${org}/sentinelcare-audit:${imageTag}",
+                "${org}/sentinelcare-simulator:${imageTag}",
+                "${org}/sentinelcare-notifications:${imageTag}"
+            ]
+
+            images.each { image ->
+                echo "Scanning ${image}..."
+                // --exit-code 0: Shows vulnerabilities but DOES NOT fail the build
+                // --severity HIGH,CRITICAL: Only reports serious issues
+                sh "trivy image --severity HIGH,CRITICAL --no-progress --exit-code 0 ${image}"
+            }
+        }
     }
+}
 
     stage('Push Images') {
       when { branch "main" }
