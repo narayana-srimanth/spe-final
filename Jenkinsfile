@@ -202,15 +202,12 @@ stage('Image Scan') {
 
 stage('Push Images') {
     // Only run this on the main branch (or remove 'when' to run everywhere)
-    when {
-        branch 'main'
-    }
     steps {
         script {
             echo "--- PUSHING IMAGES TO DOCKER HUB ---"
             
             // 1. Log in to Docker Hub using the credentials ID 'docker-hub-creds'
-            withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                 sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 
                 // 2. Define your images (Ensure 'your-org' is replaced with your Docker Hub username!)
