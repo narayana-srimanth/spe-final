@@ -11,7 +11,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Button,
   Toolbar,
   Typography,
   Menu,
@@ -24,7 +23,6 @@ import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import PeopleIcon from "@mui/icons-material/People";
 import ShieldIcon from "@mui/icons-material/Shield";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import ThemeToggleButton from "./ThemeToggleButton";
 import { api } from "../api";
 import SettingsIcon from "@mui/icons-material/Settings";
 
@@ -157,21 +155,6 @@ export function Layout({ children, onToggleTheme, themeMode, role }) {
   );
 
   const isDark = themeMode === "dark";
-  const togglePillSx = {
-    display: "flex",
-    alignItems: "center",
-    gap: 1,
-    px: 1,
-    py: 0.5,
-    borderRadius: 999,
-    background: isDark ? "rgba(226,232,240,0.16)" : "rgba(15,23,42,0.05)",
-    border: isDark
-      ? "1.5px solid rgba(226,232,240,0.28)"
-      : "1.5px solid rgba(15,23,42,0.08)",
-    boxShadow: isDark
-      ? "0 6px 20px rgba(0,0,0,0.35)"
-      : "0 10px 30px rgba(15,23,42,0.08)",
-  };
 
   return (
     <Box sx={{ display: "flex" }}>

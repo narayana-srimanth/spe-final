@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   Chip,
-  Grid,
   MenuItem,
   Stack,
   TextField,
@@ -42,8 +41,13 @@ function Tasks() {
         const [t, p] = await Promise.all([api.fetchTasks(), api.fetchPatients()]);
         setTasks(t);
         setPatients(p);
-        if (!form.patient_id && p.length) {
-          setForm((prev) => ({ ...prev, patient_id: p[0].id }));
+        if (p.length) {
+          setForm((prev) => {
+            if (prev.patient_id) {
+              return prev;
+            }
+            return { ...prev, patient_id: p[0].id };
+          });
         }
       } catch (err) {
         setError(err.message);
