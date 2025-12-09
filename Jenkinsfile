@@ -200,19 +200,46 @@ stage('Image Scan') {
     }
 }
 
-    stage('Push Images') {
-      when { branch "main" }
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh '''
-            echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
-            for svc in backend frontend patients vitals alerts scoring simulator auth tasks audit notifications; do
-              docker push ${REGISTRY}/${APP_NAME}-${svc}:${IMAGE_TAG}
-            done
-          '''
-        }
-      }
+stage('Push Images') {
+    // Only run this on the main branch (or remove 'when' to run everywhere)
+    when {
+        branch 'main'
     }
+    steps {
+        script {
+            echo "--- PUSHING IMAGES TO DOCKER HUB ---"
+            
+            // 1. Log in to Docker Hub using the credentials ID 'docker-hub-creds'
+            withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                
+                // 2. Define your images (Ensure 'your-org' is replaced with your Docker Hub username!)
+                def imageTag = env.GIT_COMMIT ?: "latest" // OR use env.GIT_COMMIT if you have it setup
+                def org = "docker.io/narayanasrimanth" // <--- CHANGE THIS TO YOUR DOCKER HUB USERNAME
+                
+                def images = [
+                    "${org}/sentinelcare-backend:${imageTag}",
+                    "${org}/sentinelcare-frontend:${imageTag}",
+                    "${org}/sentinelcare-auth:${imageTag}",
+                    "${org}/sentinelcare-patients:${imageTag}",
+                    "${org}/sentinelcare-vitals:${imageTag}",
+                    "${org}/sentinelcare-alerts:${imageTag}",
+                    "${org}/sentinelcare-scoring:${imageTag}",
+                    "${org}/sentinelcare-tasks:${imageTag}",
+                    "${org}/sentinelcare-audit:${imageTag}",
+                    "${org}/sentinelcare-simulator:${imageTag}",
+                    "${org}/sentinelcare-notifications:${imageTag}"
+                ]
+
+                // 3. Push each image
+                images.each { image ->
+                    echo "Pushing ${image}..."
+                    sh "docker push ${image}"
+                }
+            }
+        }
+    }
+}
 
     stage('Pull & Deploy to K8s') {
       when { branch "main" }
