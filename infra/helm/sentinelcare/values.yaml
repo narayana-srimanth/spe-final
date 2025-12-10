@@ -108,7 +108,7 @@ elasticsearch:
   minimumMasterNodes: 1
   persistence:
     enabled: false
-  esJavaOpts: "-Xmx512m -Xms512m"
+  esJavaOpts: "-Xmx256m -Xms256m"
   resources:
     requests:
       cpu: "100m"
@@ -133,10 +133,24 @@ logstash:
   replicas: 1
   persistence:
     enabled: false
-  logstashJavaOpts: "-Xmx512m -Xms512m"
-  elasticsearch:
-    host: elasticsearch-master
-    port: 9200
+  logstashJavaOpts: "-Xmx256m -Xms256m"
+  logstashConfig:
+    logstash.yml: |
+      http.host: 0.0.0.0
+      xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch-master:9200" ]
+  logstashPipeline:
+    logstash.conf: |
+      input {
+        beats {
+          port => 5044
+        }
+      }
+      output {
+        elasticsearch {
+          hosts => ["http://elasticsearch-master:9200"]
+          index => "logstash-%{+YYYY.MM.dd}"
+        }
+      }
   resources:
     requests:
       cpu: "100m"
