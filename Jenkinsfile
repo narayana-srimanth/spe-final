@@ -266,7 +266,10 @@ stage('Pull & Deploy to K8s') {
                 // 1. Create the namespace if it doesn't exist
                 sh 'kubectl create namespace sentinelcare || true'
                 
-                // 2. Build Helm dependencies
+                // 2. Add Helm repos and build dependencies
+                sh 'helm repo add bitnami https://charts.bitnami.com/bitnami || true'
+                sh 'helm repo add elastic https://helm.elastic.co || true'
+                sh 'helm repo update'
                 sh 'helm dependency build ./infra/helm/sentinelcare'
 
                 // 3. Deploy using Helm
