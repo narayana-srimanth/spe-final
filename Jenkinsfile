@@ -280,6 +280,7 @@ stage('Pull & Deploy to K8s') {
                     --namespace sentinelcare \
                     --set global.image.tag=${imageTag} \
                     --set global.image.repository=${org} \
+                    --timeout 20m \
                     --wait
                 """
             }

@@ -161,4 +161,4 @@ filebeat:
                 logs_path: "/var/log/containers/"
 
       output.logstash:
-        hosts: ["sentinelcare-logstash:5044"]
+        hosts: ["sentinelcare-logstash-headless:5044"]
