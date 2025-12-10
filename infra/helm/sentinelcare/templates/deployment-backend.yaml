@@ -54,8 +54,6 @@ spec:
               value: "sentinelcare-auth"
             - name: AUTH_AUDIENCE
               value: "sentinelcare-clients"
-            - name: AUTH_AUDIENCE
-              value: "sentinelcare-clients"
           command: ["/bin/sh", "-c"]
           args:
             - . /vault/secrets/config && uvicorn app.main:app --host 0.0.0.0 --port 8000

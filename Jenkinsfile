@@ -265,6 +265,10 @@ stage('Pull & Deploy to K8s') {
                 
                 // 1. Create the namespace if it doesn't exist
                 sh 'kubectl create namespace sentinelcare || true'
+
+                // 1.5 Setup Vault (Install & Configure)
+                sh 'chmod +x ./infra/scripts/setup_vault.sh'
+                sh './infra/scripts/setup_vault.sh'
                 
                 // 2. Add Helm repos and build dependencies
                 sh 'helm repo add bitnami https://charts.bitnami.com/bitnami || true'

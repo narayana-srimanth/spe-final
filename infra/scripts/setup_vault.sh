@@ -9,6 +9,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo update
 helm upgrade --install $VAULT_RELEASE hashicorp/vault \
     --namespace $NAMESPACE \
+    --create-namespace \
     --set "server.dev.enabled=true" \
     --set "injector.enabled=true" \
     --set "ui.enabled=true" \
@@ -19,7 +20,7 @@ kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vault -n $NAMES
 
 echo "--- Configuring Vault ---"
 # Enable Kubernetes Auth
-kubectl exec -n $NAMESPACE vault-0 -- vault auth enable kubernetes
+kubectl exec -n $NAMESPACE vault-0 -- vault auth enable kubernetes || true
 
 # Configure Kubernetes Auth
 kubectl exec -n $NAMESPACE vault-0 -- sh -c '
