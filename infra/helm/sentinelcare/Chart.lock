@@ -2,5 +2,17 @@ dependencies:
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
   version: 18.1.10
-digest: sha256:640c514f6af83736990c6ef5bc38ecfa5704f25387ad03b8105c1fb37b9e6f7c
-generated: "2025-12-10T02:09:07.416921451+05:30"
+- name: elasticsearch
+  repository: https://helm.elastic.co
+  version: 7.17.3
+- name: kibana
+  repository: https://helm.elastic.co
+  version: 7.17.3
+- name: logstash
+  repository: https://helm.elastic.co
+  version: 7.17.3
+- name: filebeat
+  repository: https://helm.elastic.co
+  version: 7.17.3
+digest: sha256:ef9c0d77062d238c3d236ff6390c20e3751bb78d028ab0badc119fa52d0571f5
+generated: "2025-12-10T14:41:44.070080261+05:30"

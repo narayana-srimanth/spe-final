@@ -4,6 +4,8 @@ global:
     repository: docker.io/narayanasrimanth
     tag: "latest"
     pullPolicy: IfNotPresent
+  security:
+    allowInsecureImages: true
 
 image:
   backend:
@@ -99,3 +101,64 @@ mongodb:
   service:
     ports:
       mongodb: 27017
+  
+elasticsearch:
+  imageTag: "7.17.18"
+  replicas: 1
+  minimumMasterNodes: 1
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+kibana:
+  imageTag: "7.17.18"
+  elasticsearchHosts: "http://elasticsearch-master:9200"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+logstash:
+  imageTag: "7.17.18"
+  replicas: 1
+  persistence:
+    enabled: false
+  elasticsearch:
+    host: elasticsearch-master
+    port: 9200
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+filebeat:
+  imageTag: "7.17.18"
+  daemonset:
+    enabled: true
+  filebeatConfig:
+    filebeat.yml: |
+      filebeat.inputs:
+      - type: container
+        paths:
+          - /var/log/containers/*.log
+        processors:
+        - add_kubernetes_metadata:
+            host: ${NODE_NAME}
+            matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/"
+
+      output.logstash:
+        hosts: ["sentinelcare-logstash:5044"]

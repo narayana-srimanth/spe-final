@@ -9,4 +9,16 @@ dependencies:
   - name: mongodb
     version: 18.1.10
     repository: https://charts.bitnami.com/bitnami
+  - name: elasticsearch
+    version: 7.17.3
+    repository: https://helm.elastic.co
+  - name: kibana
+    version: 7.17.3
+    repository: https://helm.elastic.co
+  - name: logstash
+    version: 7.17.3
+    repository: https://helm.elastic.co
+  - name: filebeat
+    version: 7.17.3
+    repository: https://helm.elastic.co
 
