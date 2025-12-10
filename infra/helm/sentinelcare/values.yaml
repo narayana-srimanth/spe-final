@@ -108,6 +108,7 @@ elasticsearch:
   minimumMasterNodes: 1
   persistence:
     enabled: false
+  esJavaOpts: "-Xmx512m -Xms512m"
   resources:
     requests:
       cpu: "100m"
@@ -132,6 +133,7 @@ logstash:
   replicas: 1
   persistence:
     enabled: false
+  logstashJavaOpts: "-Xmx512m -Xms512m"
   elasticsearch:
     host: elasticsearch-master
     port: 9200
