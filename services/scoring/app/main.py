@@ -58,6 +58,8 @@ app = FastAPI(title="Scoring Service", version="0.1.0")
 @app.post("/score", response_model=RiskScoreResult)
 async def score(vitals: VitalsPayload) -> RiskScoreResult:
     score, label = model.score(vitals.dict())
+    return RiskScoreResult(
+        patient_id=vitals.patient_id,
         risk_score=score,
         risk_label=label,
         model_version=model.version,
