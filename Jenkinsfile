@@ -266,7 +266,10 @@ stage('Pull & Deploy to K8s') {
                 // 1. Create the namespace if it doesn't exist
                 sh 'kubectl create namespace sentinelcare || true'
                 
-                // 2. Deploy using Helm
+                // 2. Build Helm dependencies
+                sh 'helm dependency build ./infra/helm/sentinelcare'
+
+                // 3. Deploy using Helm
                 // --set global.image.tag overwrites the tag in your values.yaml with the new one
                 // --set global.image.repository sets your Docker Hub username
                 sh """
