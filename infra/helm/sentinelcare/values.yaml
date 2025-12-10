@@ -81,7 +81,7 @@ resources:
   simulator: {}
 
 autoscaling:
-  enabled: false # Disabled for now to simplify debugging
+  enabled: true # Enabled for high availability and scalability
   backend:
     minReplicas: 1
     maxReplicas: 3
