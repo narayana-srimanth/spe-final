@@ -207,7 +207,7 @@ stage('Image Scan') {
                 echo "Scanning ${image}..."
                 // --exit-code 0: Shows vulnerabilities but DOES NOT fail the build
                 // --severity HIGH,CRITICAL: Only reports serious issues
-                sh "trivy image --severity HIGH,CRITICAL --no-progress --exit-code 0 ${image}"
+                sh "trivy image --severity HIGH,CRITICAL --no-progress --timeout 15m --exit-code 0 ${image}"
             }
         }
     }
