@@ -27,6 +27,31 @@ pipeline {
       }
     }
 
+    stage('Preparation') {
+      steps {
+        script {
+          echo "--- DETECTING CHANGED SERVICES ---"
+          def changed = []
+          
+          // Helper to check changes
+          def checkChange = { path ->
+            return sh(script: "git diff --name-only HEAD~1 HEAD | grep '^${path}' || true", returnStdout: true).trim() != ""
+          }
+
+          if (checkChange("backend/")) changed.add("backend")
+          if (checkChange("frontend/")) changed.add("frontend")
+
+          def microservices = ["patients", "vitals", "alerts", "scoring", "simulator", "auth", "tasks", "audit", "notifications"]
+          microservices.each { svc ->
+            if (checkChange("services/${svc}/")) changed.add(svc)
+          }
+
+          env.CHANGED_SERVICES = changed.join(" ")
+          echo "Services to rebuild/deploy: ${env.CHANGED_SERVICES}"
+        }
+      }
+    }
+
     stage('Static Analysis') {
       steps {
         sh '''
@@ -154,143 +179,113 @@ stage('Smoke Tests') {
     }
 }
 stage('Build Images (for registry)') {
-    steps {
+      steps {
         script {
-            // Define your variables clearly
-            def imageTag = env.GIT_COMMIT // Ensure this matches the Push stage logic!
-            def org = "docker.io/narayanasrimanth" // <--- UPDATE THIS
-            
-            // Build Backend
-            sh "docker build -f backend/Dockerfile -t ${org}/sentinelcare-backend:${imageTag} ."
-            
-            // Build Frontend
-            sh "docker build -f frontend/Dockerfile -t ${org}/sentinelcare-frontend:${imageTag} ."
-            
-            // Build All Other Microservices
-            def services = [
-                'auth', 'patients', 'vitals', 'alerts', 
-                'scoring', 'tasks', 'audit', 'simulator', 'notifications'
-            ]
-            
-            services.each { service ->
-                sh "docker build -f services/${service}/Dockerfile -t ${org}/sentinelcare-${service}:${imageTag} ."
-            }
-        }
-    }
-}
-
-stage('Image Scan') {
-    steps {
-        script {
-            echo "--- STARTING TRIVY SECURITY SCAN ---"
-            
-            // Define the list of images to scan
-            // TIP: Use the same tag variable you used in the Build stage
-            def imageTag = env.GIT_COMMIT // ideally use env.GIT_COMMIT
+            def imageTag = env.GIT_COMMIT
             def org = "docker.io/narayanasrimanth"
-            
-            def images = [
-                "${org}/sentinelcare-backend:${imageTag}",
-                "${org}/sentinelcare-frontend:${imageTag}",
-                "${org}/sentinelcare-auth:${imageTag}",
-                "${org}/sentinelcare-patients:${imageTag}",
-                "${org}/sentinelcare-vitals:${imageTag}",
-                "${org}/sentinelcare-alerts:${imageTag}",
-                "${org}/sentinelcare-scoring:${imageTag}",
-                "${org}/sentinelcare-tasks:${imageTag}",
-                "${org}/sentinelcare-audit:${imageTag}",
-                "${org}/sentinelcare-simulator:${imageTag}",
-                "${org}/sentinelcare-notifications:${imageTag}"
-            ]
+            def changedServices = env.CHANGED_SERVICES.split(" ").findAll { it }
 
-            images.each { image ->
-                echo "Scanning ${image}..."
-                // --exit-code 0: Shows vulnerabilities but DOES NOT fail the build
-                // --severity HIGH,CRITICAL: Only reports serious issues
-                sh "trivy image --severity HIGH,CRITICAL --no-progress --timeout 15m --exit-code 0 ${image}"
-            }
-        }
-    }
-}
-
-stage('Push Images') {
-    // Only run this on the main branch (or remove 'when' to run everywhere)
-    steps {
-        script {
-            echo "--- PUSHING IMAGES TO DOCKER HUB ---"
-            
-            // 1. Log in to Docker Hub using the credentials ID 'docker-hub-creds'
-            withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                
-                // 2. Define your images (Ensure 'your-org' is replaced with your Docker Hub username!)
-                def imageTag = env.GIT_COMMIT ?: "latest" // OR use env.GIT_COMMIT if you have it setup
-                def org = "docker.io/narayanasrimanth" // <--- CHANGE THIS TO YOUR DOCKER HUB USERNAME
-                
-                def images = [
-                    "${org}/sentinelcare-backend:${imageTag}",
-                    "${org}/sentinelcare-frontend:${imageTag}",
-                    "${org}/sentinelcare-auth:${imageTag}",
-                    "${org}/sentinelcare-patients:${imageTag}",
-                    "${org}/sentinelcare-vitals:${imageTag}",
-                    "${org}/sentinelcare-alerts:${imageTag}",
-                    "${org}/sentinelcare-scoring:${imageTag}",
-                    "${org}/sentinelcare-tasks:${imageTag}",
-                    "${org}/sentinelcare-audit:${imageTag}",
-                    "${org}/sentinelcare-simulator:${imageTag}",
-                    "${org}/sentinelcare-notifications:${imageTag}"
-                ]
-
-                // 3. Push each image
-                images.each { image ->
-                    echo "Pushing ${image}..."
-                    sh "docker push ${image}"
+            if (changedServices.isEmpty()) {
+                echo "No services changed. Skipping build."
+            } else {
+                changedServices.each { svc ->
+                    echo "Building ${svc}..."
+                    def dockerfile = (svc == "backend" || svc == "frontend") ? "${svc}/Dockerfile" : "services/${svc}/Dockerfile"
+                    sh "docker build -f ${dockerfile} -t ${org}/sentinelcare-${svc}:${imageTag} ."
                 }
             }
         }
+      }
     }
-}
 
-stage('Pull & Deploy to K8s') {
-    // We removed the 'when' block so this always runs
-    steps {
+    stage('Image Scan') {
+      steps {
+        script {
+            echo "--- STARTING TRIVY SECURITY SCAN ---"
+            def imageTag = env.GIT_COMMIT
+            def org = "docker.io/narayanasrimanth"
+            def changedServices = env.CHANGED_SERVICES.split(" ").findAll { it }
+
+            if (changedServices.isEmpty()) {
+                echo "No services changed. Skipping scan."
+            } else {
+                changedServices.each { svc ->
+                    def image = "${org}/sentinelcare-${svc}:${imageTag}"
+                    echo "Scanning ${image}..."
+                    sh "trivy image --severity HIGH,CRITICAL --no-progress --timeout 15m --exit-code 0 ${image}"
+                }
+            }
+        }
+      }
+    }
+
+    stage('Push Images') {
+      steps {
+        script {
+            echo "--- PUSHING IMAGES TO DOCKER HUB ---"
+            
+            withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                
+                def imageTag = env.GIT_COMMIT ?: "latest"
+                def org = "docker.io/narayanasrimanth"
+                def changedServices = env.CHANGED_SERVICES.split(" ").findAll { it }
+
+                if (changedServices.isEmpty()) {
+                    echo "No services changed. Skipping push."
+                } else {
+                    changedServices.each { svc ->
+                        def image = "${org}/sentinelcare-${svc}:${imageTag}"
+                        echo "Pushing ${image}..."
+                        sh "docker push ${image}"
+                    }
+                }
+            }
+        }
+      }
+    }
+
+    stage('Pull & Deploy to K8s') {
+      steps {
         script {
             echo "--- DEPLOYING TO KUBERNETES ---"
-            
-            def imageTag = env.GIT_COMMIT // Ensure this matches previous stages
+            def imageTag = env.GIT_COMMIT
             def org = "docker.io/narayanasrimanth"
-            
-            // This requires the 'Kubernetes CLI' plugin in Jenkins
-            withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
-                
-                // 1. Create the namespace if it doesn't exist
-                sh 'kubectl create namespace sentinelcare || true'
+            def changedServices = env.CHANGED_SERVICES.split(" ").findAll { it }
 
-                // 1.5 Setup Vault (Install & Configure)
-                sh 'chmod +x ./infra/scripts/setup_vault.sh'
-                sh './infra/scripts/setup_vault.sh'
-                
-                // 2. Add Helm repos and build dependencies
+            withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                sh 'kubectl create namespace sentinelcare || true'
+                sh 'chmod +x ./infra/scripts/setup_vault.sh && ./infra/scripts/setup_vault.sh'
                 sh 'helm repo add bitnami https://charts.bitnami.com/bitnami || true'
                 sh 'helm repo add elastic https://helm.elastic.co || true'
                 sh 'helm repo update'
                 sh 'helm dependency build ./infra/helm/sentinelcare'
 
-                // 3. Deploy using Helm
-                // --set global.image.tag overwrites the tag in your values.yaml with the new one
-                // --set global.image.repository sets your Docker Hub username
-                sh """
-                    helm upgrade --install sentinelcare ./infra/helm/sentinelcare \
-                    --namespace sentinelcare \
-                    --set global.image.tag=${imageTag} \
-                    --set global.image.repository=${org} \
-                    --timeout 20m \
-                    --wait
-                """
+                def helmCmd = "helm upgrade --install sentinelcare ./infra/helm/sentinelcare --namespace sentinelcare --timeout 20m --wait"
+                
+                // Check if release exists
+                def releaseExists = sh(script: "helm status sentinelcare -n sentinelcare", returnStatus: true) == 0
+                
+                if (releaseExists) {
+                    helmCmd += " --reuse-values"
+                    if (changedServices.isEmpty()) {
+                         echo "No services changed. Helm upgrade will just apply chart changes."
+                    } else {
+                         changedServices.each { svc ->
+                             helmCmd += " --set image.${svc}.tag=${imageTag}"
+                         }
+                    }
+                } else {
+                     // First deploy: set global tag
+                     helmCmd += " --set global.image.tag=${imageTag} --set global.image.repository=${org}"
+                }
+                
+                echo "Executing: ${helmCmd}"
+                sh helmCmd
             }
         }
+      }
     }
-}
   }
 
   post {

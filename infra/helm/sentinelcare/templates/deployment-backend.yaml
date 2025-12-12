@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ .Values.global.image.repository }}/{{ .Values.image.backend.repository }}:{{ .Values.global.image.tag }}"
+          image: "{{ .Values.global.image.repository }}/{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag | default .Values.global.image.tag }}"
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           env:
             - name: MODEL_PATH

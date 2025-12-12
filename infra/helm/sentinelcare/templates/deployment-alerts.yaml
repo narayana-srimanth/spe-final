@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: alerts
-          image: "{{ .Values.global.image.repository }}/{{ .Values.image.alerts.repository }}:{{ .Values.global.image.tag }}"
+          image: "{{ .Values.global.image.repository }}/{{ .Values.image.alerts.repository }}:{{ .Values.image.alerts.tag | default .Values.global.image.tag }}"
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           readinessProbe:
             httpGet:
