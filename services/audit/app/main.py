@@ -16,7 +16,7 @@ settings = Settings()
 client = AsyncIOMotorClient(settings.mongo_url)
 db = client[settings.mongo_db]
 audit_col = db["audit_events"]
-
+hi = "hi string for changing"
 
 class AuditEvent(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
