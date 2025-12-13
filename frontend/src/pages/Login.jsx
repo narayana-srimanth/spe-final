@@ -72,7 +72,7 @@ function Login({ onLogin }) {
               size="large"
               startIcon={<LoginIcon />}
             >
-              For Sign In working fine.
+              Sign In.
             </Button>
             {error && (
               <Typography variant="body2" color="error">
