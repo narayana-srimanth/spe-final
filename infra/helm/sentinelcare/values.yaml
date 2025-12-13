@@ -70,8 +70,14 @@ ingress:
   tls: []
 
 resources:
-  backend: {}
-  frontend: {}
+  backend:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  frontend:
+    requests:
+      cpu: 100m
+      memory: 128Mi
   patients: {}
   vitals: {}
   alerts: {}
