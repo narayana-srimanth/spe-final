@@ -114,14 +114,14 @@ elasticsearch:
   minimumMasterNodes: 1
   persistence:
     enabled: false
-  esJavaOpts: "-Xmx256m -Xms256m"
+  esJavaOpts: "-Xmx512m -Xms512m"
   resources:
     requests:
       cpu: "100m"
       memory: "1Gi"
     limits:
       cpu: "1000m"
-      memory: "1Gi"
+      memory: "2Gi"
 
 kibana:
   imageTag: "7.17.18"
