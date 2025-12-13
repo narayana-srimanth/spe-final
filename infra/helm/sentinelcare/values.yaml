@@ -59,7 +59,7 @@ mockModel:
   path: /app/models/mock_artifacts/sepsis_mock_model.json
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations: {}
   hosts:
